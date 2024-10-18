@@ -1,11 +1,6 @@
+
 module c3lox;
 import std::io;
-
-
-struct C3Lox 
-{
-  bool aha;
-}
 
 /**
  * Entry point
@@ -51,8 +46,9 @@ fn int main(String[] args)
  *
  */
 fn void! runFile(String filename) 
-{
+{ 
   char[] content = file::load_new(filename)!;
+  defer free(content);
   run(content)!;
 }
 
@@ -84,14 +80,15 @@ fn void! runPrompt()
  */
 fn void! run(char[] src) 
 {
-  TokenList tokens;
+  Tokens tokens;
   tokens.new_init();
+  defer tokens.free();
 
   lexer::scanTokens(&tokens)!;
- 
-  foreach (&token : tokens) {
-    io::printfn("%s", *token);
-  }
+
+  // foreach (&token : tokens) {
+  //   io::printfn("%s", *token);
+  // }
 }
 
 

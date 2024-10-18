@@ -1,5 +1,5 @@
 
-module c3lox;
+module c3lox::err;
 
 enum ExitCode : int (int value) {
   OK = 0,

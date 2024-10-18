@@ -1,8 +1,6 @@
 
 module c3lex::logger;
-
 import std::io;
-
 
 macro void error(uint line, String message) 
 {
