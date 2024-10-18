@@ -8,52 +8,68 @@ struct Tokens (Printable)
   TokenLineList lines;
   TokenKindList kinds;
   TokenValueIndices value_indices;
-  TokenValueList values;
+  TokenValues values;
 }
 
-union TokenValue
-{
-  String str;
-  int128 num_int;
-  double num_float;
-}
-
-def TokenValueList = List(<TokenValue>);
 def TokenValueIndices = List(<usz>);
 def TokenLineList = List(<uint>);
 
 /**
- * Scans for tokens
+ * Pushes the token information without value.
+ * value_indices are pushed with usz.max
  *
- * @param src "Source code"
+ * @param line
+ * @param kind
  */
-fn void! Tokens.scan_all(&self, char[] src)
+fn void Tokens.push(&self, uint line, TokenKind kind)
 {
-  bool is_end;
-  while (!is_end) {
-    self.scan_next();
-  }
+  self.lines.push(line);
+  self.kinds.push(kind);
+  self.value_indices.push(usz.max);
 }
 
-fn void Tokens.scan_next(&self)
+/**
+ * Automatically detects type of val and pushes it to self.values
+ *
+ * @param val
+ * @param line
+ * @param kind
+ */
+macro void Tokens.push_value(&self, uint line, TokenKind kind, val)
 {
+  usz i;
 
+  $switch ($typeof(val).typeid)
+    $case TokenInteger.typeid:
+      i = self.values.integers.push_unique(val);
+    $case TokenFloat.typeid:
+      i = self.values.floats.push_unique(val);
+    $case String.typeid:
+      i = self.value.strings.push_unique(val);
+    $default:
+      $echo("Attempt to push value of invalid type");
+      $assert(false);
+  $endswitch
+
+  self.lines.push(line);
+  self.kinds.push(kind);
+  self.value_indices.push(i);
 }
 
 /**
  * Initializes structure on heap
  *
- * @param val_cap "Values starting capacity"
- * @param comp_cap "Components starting capacity"
+ * @param values_cap "Values starting capacity"
+ * @param components_cap "Starting capacity for self.lines and self.kinds"
  *
- * @require val_cap > 0
- * @require comp_cap > 0
+ * @require values_cap > 0
+ * @require components_cap > 0
  */
-fn void Tokens.new_init(&self, usz val_cap = 8, usz comp_cap = 16)
+fn void Tokens.new_init(&self, usz values_cap = 8, usz components_cap = 16)
 {
-  self.values.new_init(val_cap);
-  self.lines.new_init(capacity);
-  self.kinds.new_init(capacity);
+  self.values.new_init(values_cap);
+  self.lines.new_init(components_cap);
+  self.kinds.new_init(components_cap);
 }
 
 /**
@@ -70,4 +86,5 @@ fn usz! Tokens.to_format(&self, Formatter* formatter) @dynamic
 {
   return formatter.printf("%s, %s", self.lines, self.kinds)!;
 }
+
 

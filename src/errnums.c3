@@ -11,4 +11,3 @@ fault ProgramError {
   USER_ERROR
 }
 
-

@@ -1,14 +1,30 @@
 
-module c3lex::logger;
+module c3lox::logger;
 import std::io;
 
-macro void error(uint line, String message) 
+/**
+ * Prints user error stderr
+ */
+macro void userError(uint line, ...)
 {
-  report(line, "", message);
+  io::printf("Error occured on line %s: ", line);
+  $for (var $i = 0; $i < $vacount; ++$i)
+    printArg($vaarg[$i]);
+  $endfor
+  io::printn();
 }
 
-fn void report(int line, String where, String message)
+/**
+ * Prints arguments according to formatting
+ */
+macro void printArg(arg) @private
 {
-  io::printfn("[Line %s] Error%s: %s", line, where, message);
+  $switch ($typeof(arg).typeid) 
+    $case ichar.typeid:
+    $case char.typeid:
+      io::printf("%c", arg);
+    $default:
+      io::printf("%s", arg);
+  $endswitch
 }
 
