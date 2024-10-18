@@ -2,10 +2,42 @@
 module c3lox::lexer;
 import std::collections::list, std::io;
 
+// lines.len == kinds.len == value_indices.len
 struct Tokens (Printable) 
 {
-  inline TokenComponents comps;
+  TokenLineList lines;
+  TokenKindList kinds;
+  TokenValueIndices value_indices;
   TokenValueList values;
+}
+
+union TokenValue
+{
+  String str;
+  int128 num_int;
+  double num_float;
+}
+
+def TokenValueList = List(<TokenValue>);
+def TokenValueIndices = List(<usz>);
+def TokenLineList = List(<uint>);
+
+/**
+ * Scans for tokens
+ *
+ * @param src "Source code"
+ */
+fn void! Tokens.scan_all(&self, char[] src)
+{
+  bool is_end;
+  while (!is_end) {
+    self.scan_next();
+  }
+}
+
+fn void Tokens.scan_next(&self)
+{
+
 }
 
 /**
@@ -20,7 +52,8 @@ struct Tokens (Printable)
 fn void Tokens.new_init(&self, usz val_cap = 8, usz comp_cap = 16)
 {
   self.values.new_init(val_cap);
-  self.comps.new_init(comp_cap) @inline;
+  self.lines.new_init(capacity);
+  self.kinds.new_init(capacity);
 }
 
 /**
@@ -28,12 +61,13 @@ fn void Tokens.new_init(&self, usz val_cap = 8, usz comp_cap = 16)
  */
 fn void Tokens.free(&self)
 {
-  self.comps.free() @inline;
+  self.kinds.free();
+  self.lines.free();
   self.values.free();
 }
 
 fn usz! Tokens.to_format(&self, Formatter* formatter) @dynamic
 {
-  return formatter.printf("%s", self.comps)!;
+  return formatter.printf("%s, %s", self.lines, self.kinds)!;
 }
 

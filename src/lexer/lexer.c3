@@ -1,17 +1,16 @@
 
 module c3lox::lexer;
 
-import std::collections::list;
-import std::io;
-
 struct Lexer
 {
-  char[] src;
-  Tokens tokens; 
+  Tokens tokens;
+  uint lex_start;
+  uint current;
+  uint line;
 }
 
-fn void! scanTokens(Tokens* list) 
+fn bool isEnd(uint current_loc, uint src_length)
 {
-
+  return current_loc >= src_length;
 }
 

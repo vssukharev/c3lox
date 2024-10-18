@@ -84,7 +84,7 @@ fn void! run(char[] src)
   tokens.new_init();
   defer tokens.free();
 
-  lexer::scanTokens(&tokens)!;
+  tokens.scan_all(src)!;
 
   // foreach (&token : tokens) {
   //   io::printfn("%s", *token);
