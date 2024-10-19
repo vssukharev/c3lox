@@ -10,9 +10,8 @@ fn int main(String[] args)
   switch {
     case args.len == 1: 
     {
-      if (catch err = runPrompt()) {
-        case ProgramError.USER_ERROR:
-          return ExitCode.USER_ERROR.value;
+      if (catch err = runPrompt()) 
+      {
         default:
           io::printfn("%s occured while running a prompt", err);
       }
@@ -20,13 +19,16 @@ fn int main(String[] args)
     
     case args.len == 2: 
     {
-      if (catch err = runFile(args[0])) {
+      String* filename = &args[1];
+
+      if (catch err = runFile(*filename)) 
+      {
         case IoError.FILE_NOT_FOUND:
-          io::printfn("Could not find file %s", args[0]);
+          io::printfn("Could not find file %s", *filename);
         case ProgramError.USER_ERROR:
           return ExitCode.USER_ERROR.value;
         default:
-          io::printfn("%s occured while running a file %s", err, args[0]);
+          io::printfn("%s occured while running a file %s", err, *filename);
       }
     }
 
@@ -59,7 +61,7 @@ fn void! runPrompt()
     while(true) {
       io::print("c3lox > ");
       
-        String! line = io::treadline();
+        char[]! line = io::treadline();
 
         if (catch err = line) {
           if (err == IoError.EOF) return;
@@ -68,7 +70,10 @@ fn void! runPrompt()
 
         if (line == ":q") return;
 
-        run(line)!;
+        if (catch err = run(line)) {
+          case ProgramError.USER_ERROR: break;
+          default: return err?;
+        }
     }
   };
 }
@@ -84,7 +89,9 @@ fn void! run(char[] src)
   tokens.new_init();
   defer tokens.free();
 
-  lexer::scanTokens(&tokens, src);
+  if (catch lexer::scanTokens(&tokens, src)) {
+    return ProgramError.USER_ERROR?; 
+  }
 
   // foreach (&token : tokens) {
   //   io::printfn("%s", *token);
