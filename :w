@@ -76,11 +76,10 @@ fn void! scanToken(
     case '/': 
     {
       if (matchNextChar('/', offset, src)) {
-        char next_c;
-        do {
-          next_c = lookupNextChar(*offset, src);
+        while (!matchLookupNextChar('\n', *offset, src)) { 
+          lookupNextChar('\n', *offset, src);
           ++*offset; 
-        } while (next_c != '\n' && next_c != Ascii.EOF.value);
+        }
       } else {
         tokens.push(*line, TokenKind.SLASH);
       }
@@ -96,23 +95,17 @@ fn void! scanToken(
 
     case '"': 
     {
-      char next_c;
-
-      do {
-        next_c = lookupNextChar(*offset, src);
-        if (next_c == '\n') ++*line;
+      while (!matchLookupNextChar('"', *offset, src)) {
+        if (matchLookupNextChar('\n', *offset, src)) ++*line;
         ++*offset;
+      }
 
-        if (next_c == Ascii.EOF.value) {
-          logger::userError(*line, "Reached end of file with unterminated string");
-          break;
-        }
-      } while (next_c != '"');
-
+      if (isEOF(*offset, src.len)) {
+        logger::userError(*line, "Reached end of file with unterminated string");
+      }
 
       // The closing "
       ++*offset;
-
       // Trim the surrounding quotes
       String value = (String) src[*lexem_start+1..*offset-1];
       tokens.push_value(*line, TokenKind.STRING, value);
