@@ -11,7 +11,4 @@ fault ProgramError {
   USER_ERROR
 }
 
-fault LexerError {
-  UNEXPECTED_CHAR
-}
 

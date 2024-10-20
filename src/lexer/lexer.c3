@@ -1,6 +1,6 @@
 
 module c3lox::lexer;
-import c3lox::logger, c3lox::err, std::io;
+import c3lox::logger, c3lox::err, std::io, std::ascii;
 
 enum Ascii : char (char value) {
   EOF = 26,
@@ -11,11 +11,11 @@ enum Ascii : char (char value) {
  *
  * @param src "Source code"
  *
- * @return! LexerError.UNEXPECTED_CHAR
+ * @return! ProgramError.USER_ERROR
  */
 fn void! scanTokens(Tokens* tokens, char[] src)
 {
-  bool error_caught;
+  anyfault caught_error;
 
   uint lex_start = 0; // lexeme start
   uint offset    = 0; // current offset
@@ -23,10 +23,10 @@ fn void! scanTokens(Tokens* tokens, char[] src)
 
   while (!isEOF(offset, src.len)) {
     lex_start = offset;
-    error_caught = !@ok(scanToken(tokens, &lex_start, &offset, &line, src));
+    caught_error = @catch(scanToken(tokens, &lex_start, &offset, &line, src));
   }
 
-  if (error_caught) return LexerError.UNEXPECTED_CHAR?;
+  if (caught_error) return caught_error?;
 }
 
 /**
@@ -36,7 +36,7 @@ fn void! scanTokens(Tokens* tokens, char[] src)
  * @param [inout] line        "Current line"
  * @param src                 "Source code"
  *
- * @return! LexerError.UNEXPECTED_CHAR
+ * @return! ProgramError.USER_ERROR
  */
 fn void! scanToken(
   Tokens* tokens, 
@@ -61,26 +61,28 @@ fn void! scanToken(
     case ';': tokens.push(*line, TokenKind.SEMICOLON);
     case '*': tokens.push(*line, TokenKind.STAR);
 
-    case '!': tokens.push(*line, matchNextChar('=', offset, src) 
+    case '!': tokens.push(*line, lookupNextChar(*offset, src) == '='
       ? TokenKind.BANG_EQUAL : TokenKind.BANG);
 
-    case '=': tokens.push(*line, matchNextChar('=', offset, src)
+    case '=': tokens.push(*line, lookupNextChar(*offset, src) == '='
       ? TokenKind.EQUAL_EQUAL : TokenKind.EQUAL);
 
-    case '<': tokens.push(*line, matchNextChar('=', offset, src)
+    case '<': tokens.push(*line, lookupNextChar(*offset, src) == '='
       ? TokenKind.LESS_EQUAL : TokenKind.LESS);
 
-    case '>': tokens.push(*line, matchNextChar('=', offset, src)
+    case '>': tokens.push(*line, lookupNextChar(*offset, src) == '='
       ? TokenKind.GREATER_EQUAL : TokenKind.GREATER);
 
     case '/': 
     {
-      if (matchNextChar('/', offset, src)) {
-        char next_c;
-        do {
+      if (lookupNextChar(*offset, src) == '/') {
+        ++*offset;
+        char next_c = lookupNextChar(*offset, src);
+        while (next_c != '\n' && next_c != Ascii.EOF.value) {
           next_c = lookupNextChar(*offset, src);
-          ++*offset; 
-        } while (next_c != '\n' && next_c != Ascii.EOF.value);
+          ++*offset;
+        }
+
       } else {
         tokens.push(*line, TokenKind.SLASH);
       }
@@ -95,74 +97,70 @@ fn void! scanToken(
       ++*line;
 
     case '"': 
-    {
-      char next_c;
+      tokenizeStringLiteral(tokens, line, offset, src)!;
 
-      do {
-        next_c = lookupNextChar(*offset, src);
-        if (next_c == '\n') ++*line;
-        ++*offset;
-
-        if (next_c == Ascii.EOF.value) {
-          logger::userError(*line, "Reached end of file with unterminated string");
-          break;
-        }
-      } while (next_c != '"');
-
-
-      // The closing "
-      ++*offset;
-
-      // Trim the surrounding quotes
-      String value = (String) src[*lexem_start+1..*offset-1];
-      tokens.push_value(*line, TokenKind.STRING, value);
-    }
-
-    default: 
-      logger::userError(*line, "Unexpected character: ", c);
-      return LexerError.UNEXPECTED_CHAR?;
+    default:
+      if (isNumStart(c)) {
+        tokenizeNumberLiteral()!;
+      } else if (isIdStart(c)) {
+        tokenizeIdentifier();
+      } else {
+        logger::userError(*line, "Unexpected character: ", c);
+        return ProgramError.USER_ERROR?;
+      }
   }
 
 }
 
-/**
- * Compares 'c' with next character, 
- * by incrementing 'offset' and returns true
- * if they are the same. Returns false if EOF
- * is reached.
- *
- * @param c "Character to match"
- * @param [inout] offset "Current offset"
- * @param src "Source code"
- */
-macro bool matchNextChar(
-  char c, 
-  uint* offset,
-  char[] src)
+
+fn void tokenizeIdentifier()
 {
-  char next_c = readNextChar(offset, src);
-  if (next_c == Ascii.EOF.value) return false;
-  
-  return next_c == c;
+
+}
+
+fn void! tokenizeNumberLiteral()
+{
+  // while (ascii::is_digit(lookupNextChar()))
 }
 
 /**
- * The same as matchNextChar but doesn't 
- * modify the offset
+ * Modifies 'tokens' parameter by pushing 
+ * value of string literal into it. 
  *
- * @param c "Character to match"
- * @param offset "Current offset"
+ * @param [out] tokens "Tokens"
+ * @param [inout] line "Current line"
+ * @param [inout] offset "Offset of double quotes character"
  * @param src "Source code"
+ *
+ * @require src[*offset] == '"'
+ *
+ * @return! ProgramError.USER_ERROR
  */
-macro bool matchLookupNextChar(
-  char c, 
-  uint offset,
+fn void! tokenizeStringLiteral(
+  Tokens* tokens,
+  uint* line, 
+  uint* offset,
   char[] src)
 {
-  char next_c = lookupNextChar(offset, src);
-  if (next_c == Ascii.EOF.value) return false;
-  
-  return next_c == c;
+  uint lexeme_start = *offset;
+
+  char next_c;
+
+  do {
+    next_c = lookupNextChar(*offset, src);
+    if (next_c == '\n') ++*line;
+    ++*offset;
+
+    if (next_c == Ascii.EOF.value) {
+      logger::userError(*line, "Reached end of file with unterminated string");
+      return ProgramError.USER_ERROR?;
+    }
+  } while (next_c != '"');
+
+
+  // Trim the surrounding quotes
+  String value = (String) src[lexeme_start+1..*offset];
+  tokens.push_value(*line, TokenKind.STRING, value);
 }
 
 /**
@@ -198,6 +196,19 @@ macro char lookupNextChar(
   return src[offset];
 }
 
+/**
+ * Detects whether character is beginning of a number
+ *
+ * @param c "Character to be detected"
+ */
+macro bool isNumStart(char c) => ascii::is_digit_m(c);
+
+/**
+ * Detects whether character is beginning of an identificator
+ *
+ * @param c "Character to be detected"
+ */
+macro bool isIdStart(char c) => ascii::is_alpha_m(c) || c == '_';
 
 /**
  * @param offset  "Current offset"
@@ -205,7 +216,9 @@ macro char lookupNextChar(
  *
  * @return "Whether we should stop our lexer"
  */
-macro bool isEOF(uint offset, uint src_len)
+macro bool isEOF(
+  uint offset, 
+  uint src_len)
 {
   return offset >= src_len;
 }

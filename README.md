@@ -1,7 +1,7 @@
 
 # c3lox
 
-C3Lox - is my implementation for Lox interpreter in this book https://craftinginterpreters.com/ but written in C3 (https://c3-lang.org/).
+C3Lox - is my implementation for Lox interpreter from this book https://craftinginterpreters.com/ but written in C3 (https://c3-lang.org/).
 
 ## Build
 
