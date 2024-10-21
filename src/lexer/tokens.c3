@@ -47,8 +47,7 @@ macro void Tokens.push_value(&self, uint line, TokenKind kind, val)
     $case String.typeid:
       i = self.values.strings.push_unique(val);
     $default:
-      $echo("Attempt to push value of invalid type");
-      $assert(false);
+      $error "Attempt to push value of invalid type";
   $endswitch
 
   self.lines.push(line);

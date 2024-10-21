@@ -101,7 +101,7 @@ fn void! scanToken(
 
     default:
       if (isNumStart(c)) {
-        tokenizeNumberLiteral()!;
+        tokenizeNumberLiteral(tokens, offset, *line, src);
       } else if (isIdStart(c)) {
         tokenizeIdentifier();
       } else {
@@ -118,16 +118,48 @@ fn void tokenizeIdentifier()
 
 }
 
-fn void! tokenizeNumberLiteral()
+/**
+ * Modifies 'tokens' parameter by pushing 
+ * value of string literal into it. 
+ *
+ * @param [out] tokens "Tokens to be modified"
+ * @param [inout] offset "Offset of number start"
+ * @param line "Current line"
+ * @param src "Source code"
+ *
+ * @require isNumStart(src[*offset])
+ */
+fn void tokenizeNumberLiteral(
+  Tokens* tokens,
+  uint* offset,
+  uint line,
+  char[] src)
 {
-  // while (ascii::is_digit(lookupNextChar()))
+  uint lexeme_start = *offset;
+  
+  while (isDigit(lookupNextChar(*offset, src))) ++*offset;
+
+  // Look for fractional part
+  if (lookupNextChar(*offset, src) == '.' && 
+      isDigit(lookupNextChar(*offset+1, src)))
+  {
+    // Consume the "."
+    ++*offset;
+    while (isDigit(lookupNextChar(*offset, src))) ++*offset;
+  }
+
+  String str_value = (String) src[lexeme_start..*offset];
+  double value = str_value.to_double()!!; // panic here for now
+
+  tokens.push_value(line, TokenKind.NUMBER, value);
+  io::printfn("%s: %s", $$FUNC, value);
 }
 
 /**
  * Modifies 'tokens' parameter by pushing 
  * value of string literal into it. 
  *
- * @param [out] tokens "Tokens"
+ * @param [out] tokens "Tokens to be modified"
  * @param [inout] line "Current line"
  * @param [inout] offset "Offset of double quotes character"
  * @param src "Source code"
@@ -197,20 +229,6 @@ macro char lookupNextChar(
 }
 
 /**
- * Detects whether character is beginning of a number
- *
- * @param c "Character to be detected"
- */
-macro bool isNumStart(char c) => ascii::is_digit_m(c);
-
-/**
- * Detects whether character is beginning of an identificator
- *
- * @param c "Character to be detected"
- */
-macro bool isIdStart(char c) => ascii::is_alpha_m(c) || c == '_';
-
-/**
  * @param offset  "Current offset"
  * @param src_len "Source code length"
  *
@@ -222,4 +240,10 @@ macro bool isEOF(
 {
   return offset >= src_len;
 }
+
+macro bool isNumStart(char c) => ascii::is_digit_m(c);
+macro bool isDigit(char c) => ascii::is_digit_m(c);
+macro bool isIdStart(char c) => ascii::is_alpha_m(c) || c == '_';
+macro bool isIdPart(char c) => ascii::is_alpha_m(c) || c == '_' || isDigit(c);
+
 
