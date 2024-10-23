@@ -25,6 +25,7 @@ fn void Tokens.push(&self, uint line, TokenKind kind)
 {
   self.lines.push(line);
   self.kinds.push(kind);
+  io::printfn("Pushing TokenKind %s on line %s", line, kind);
   self.value_indices.push(usz.max);
 }
 
@@ -51,6 +52,7 @@ macro void Tokens.push_value(&self, uint line, TokenKind kind, val)
   $endswitch
 
   self.lines.push(line);
+  io::printfn("Pushing TokenKind %s on line %s with value %s", line, kind, val);
   self.kinds.push(kind);
   self.value_indices.push(i);
 }

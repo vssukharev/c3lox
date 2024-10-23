@@ -57,17 +57,17 @@ fn void! scanToken(
     case ';': tokens.push(*line, TokenKind.SEMICOLON);
     case '*': tokens.push(*line, TokenKind.STAR);
 
-    case '!': tokens.push(*line, lookupNextChar(*offset, src) == '='
-      ? TokenKind.BANG_EQUAL : TokenKind.BANG);
+    case '!': tokens.push(*line, matchNextChar('=', offset, src)
+              ? TokenKind.BANG_EQUAL : TokenKind.BANG);
 
-    case '=': tokens.push(*line, lookupNextChar(*offset, src) == '='
-      ? TokenKind.EQUAL_EQUAL : TokenKind.EQUAL);
+    case '=': tokens.push(*line, matchNextChar('=', offset, src) 
+              ? TokenKind.EQUAL_EQUAL : TokenKind.EQUAL);
 
-    case '<': tokens.push(*line, lookupNextChar(*offset, src) == '='
-      ? TokenKind.LESS_EQUAL : TokenKind.LESS);
+    case '<': tokens.push(*line, matchNextChar('=', offset, src) 
+              ? TokenKind.LESS_EQUAL : TokenKind.LESS);
 
-    case '>': tokens.push(*line, lookupNextChar(*offset, src) == '='
-      ? TokenKind.GREATER_EQUAL : TokenKind.GREATER);
+    case '>': tokens.push(*line, matchNextChar('=', offset, src) 
+              ? TokenKind.GREATER_EQUAL : TokenKind.GREATER);
 
     case '/': 
       if (lookupNextChar(*offset, src) == '/') {
@@ -89,7 +89,7 @@ fn void! scanToken(
 
     default:
       if (isDigit(c)) {
-        tokenizeNumberLiteral(tokens, offset, *line, src);
+        tokenizeNumericLiteral(tokens, offset, *line, src)!;
       } else if (isAlpha(c)) {
         tokenizeIdentifier(tokens, offset, *line, src);
       } else {
@@ -140,8 +140,10 @@ fn void tokenizeIdentifier(
  * @param src "Source code"
  *
  * @require isDigit(src[*offset]) "First character of lexeme must be already found"
+ *
+ * @return! ProgramError.USER_ERROR
  */
-fn void tokenizeNumberLiteral(
+fn void! tokenizeNumericLiteral(
   Tokens* tokens,
   uint* offset,
   uint line,
@@ -150,9 +152,20 @@ fn void tokenizeNumberLiteral(
   uint lexeme_start = *offset;
   
   while (isDigit(lookupNextChar(*offset, src))) ++*offset;
+  
+  char c = lookupNextChar(*offset, src); 
+
+  if (isAlpha(c)) {
+    // Consume alphabetical character
+    ++*offset;
+    uint suffix_start = *offset;
+    while (isAlphaNum(lookupNextChar(*offset, src))) ++*offset;
+    logger::userError(line, "Invalid suffix on numeric literal: ", src[suffix_start..*offset]);
+    return ProgramError.USER_ERROR?;
+  }
 
   // Look for fractional part
-  if (lookupNextChar(*offset, src) == '.' && 
+  if (c == '.' && 
       isDigit(lookupNextChar(*offset+1, src)))
   {
     // Consume the "."
@@ -164,7 +177,6 @@ fn void tokenizeNumberLiteral(
   double value = str_value.to_double()!!; // panic here for now
 
   tokens.push_value(line, TokenKind.NUMBER, value);
-  io::printfn("%s: %s", $$FUNC, value);
 }
 
 /**
@@ -229,23 +241,34 @@ fn void processComment(
 }
 
 /**
+ * Safely look at the next char
+ * and compares it with 'c'. If so,
+ * set 'offset' to the position of the
+ * next character.
+ *
+ * @param c "Character to compare with"
  * @param [&inout] offset "Current offset"
  * @param src "Source code"
  *
- * @return "26 if it's EOF"
+ * @return "true if characters are equal"
  */
-macro char readNextChar(
+fn bool matchNextChar(
+  char c,
   uint* offset,
   char[] src)
 {
-  ++*offset;
-  if (isEOF(*offset, src.len)) return Ascii.EOF.value;
-  return src[*offset];
+  char next_c = lookupNextChar(*offset, src);
+  if (next_c == c) { 
+    ++*offset;
+    return true;
+  }
+
+  return false;
 }
 
 /**
- * The same as readNextChar but doesn't 
- * modify the offset
+ * Safely look at the next char
+ * and returns it
  *
  * @param offset "Current offset"
  * @param src "Source code"
