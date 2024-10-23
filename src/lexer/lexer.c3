@@ -60,7 +60,7 @@ fn void! scanToken(
     case '!': tokens.push(*line, matchNextChar('=', offset, src)
               ? TokenKind.BANG_EQUAL : TokenKind.BANG);
 
-    case '=': tokens.push(*line, matchNextChar('=', offset, src) 
+case '=': tokens.push(*line, matchNextChar('=', offset, src) 
               ? TokenKind.EQUAL_EQUAL : TokenKind.EQUAL);
 
     case '<': tokens.push(*line, matchNextChar('=', offset, src) 
@@ -70,10 +70,10 @@ fn void! scanToken(
               ? TokenKind.GREATER_EQUAL : TokenKind.GREATER);
 
     case '/': 
-      if (lookupNextChar(*offset, src) == '/') {
-        processComment(offset, src);
-      } else {
-        tokens.push(*line, TokenKind.SLASH);
+      switch (lookupNextChar(*offset, src)) {
+        case '/': processLineComment(offset, src);
+        case '*': processBlockComment(offset, src);
+        default: tokens.push(*line, TokenKind.SLASH);
       }
 
     case ' ':
@@ -97,7 +97,6 @@ fn void! scanToken(
         return ProgramError.USER_ERROR?;
       }
   }
-
 }
 
 /**
@@ -133,7 +132,7 @@ fn void tokenizeIdentifier(
 /**
  * Modifies 'tokens' parameter by pushing 
  * value of string literal into it. 
- *
+ * 
  * @param [&out] tokens "Tokens to be modified"
  * @param [&inout] offset "Offset of number start"
  * @param line "Current line"
@@ -220,15 +219,47 @@ fn void! tokenizeStringLiteral(
 }
 
 /**
- * Skips characters till comment's end, 
- * by modifying 'offset'
+ * Skips characters till block comment's 
+ * end, by modifying 'offset'
  * 
  * @param [&inout] offset
  * @param src
  *
- * @require (src[*offset] == '/' && lookupNextChar(*offset, src) == '/') "Must be invoked when comment is detected (offset is pointing to first '/')"
+ * @require (src[*offset] == '/' && lookupNextChar(*offset, src) == '*') "Must be invoked when comment is detected ('offset' should be pointing to '/')"
+ */ 
+fn void processBlockComment(
+  uint* offset,
+  char[] src)
+{
+  uint nest_depth = 1; // quantity of nested comments
+  char c;
+
+  do {
+    ++*offset;
+    c = lookupNextChar(*offset, src);
+
+    switch (c) {
+      case '/':
+        if (lookupNextChar(*offset+1, src) == '*') ++nest_depth;
+      case '*':
+        if (lookupNextChar(*offset+1, src) == '/') --nest_depth;
+    }
+  } while (nest_depth != 0 && c != Ascii.EOF.value);
+
+  // feed last '*' and '/'
+  *offset += 2;
+}
+
+/**
+ * Skips characters till line comment's 
+ * end, by modifying 'offset'
+ * 
+ * @param [&inout] offset
+ * @param src
+ *
+ * @require (src[*offset] == '/' && lookupNextChar(*offset, src) == '/') "Must be invoked when comment is detected (offset should be pointing to first '/')"
  */
-fn void processComment(
+fn void processLineComment(
   uint* offset,
   char[] src)
 {
