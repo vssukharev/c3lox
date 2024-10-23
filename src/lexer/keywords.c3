@@ -1,7 +1,7 @@
 
 module c3lox::lexer;
 
-const String[] KEYWORD_STRINGS = {
+const String[] KEYWORDS_STRINGS = {
   "and",
   "class",
   "else",
@@ -20,7 +20,7 @@ const String[] KEYWORD_STRINGS = {
   "while",
 };
 
-const TokenKind[] KEYWORD_KINDS = {
+const TokenKind[] KEYWORDS_KINDS = {
   AND,
   CLASS,
   ELSE,

@@ -70,19 +70,11 @@ fn void! scanToken(
       ? TokenKind.GREATER_EQUAL : TokenKind.GREATER);
 
     case '/': 
-    {
       if (lookupNextChar(*offset, src) == '/') {
-        ++*offset;
-        char next_c = lookupNextChar(*offset, src);
-        while (next_c != '\n' && next_c != Ascii.EOF.value) {
-          next_c = lookupNextChar(*offset, src);
-          ++*offset;
-        }
-
+        processComment(offset, src);
       } else {
         tokens.push(*line, TokenKind.SLASH);
       }
-    }
 
     case ' ':
     case '\r':
@@ -99,7 +91,7 @@ fn void! scanToken(
       if (isDigit(c)) {
         tokenizeNumberLiteral(tokens, offset, *line, src);
       } else if (isAlpha(c)) {
-        tokenizeIdentifier(tokens, offset, src);
+        tokenizeIdentifier(tokens, offset, *line, src);
       } else {
         logger::userError(*line, "Unexpected character: ", c);
         return ProgramError.USER_ERROR?;
@@ -114,18 +106,28 @@ fn void! scanToken(
  *
  * @param [&out] tokens "Tokens to be modified"
  * @param [&inout] offset "Offset of number start"
+ * @param line "Current line"
  * @param src "Source code"
+ *
+ * @require isAlpha(src[*offset]) "First character of lexeme must be already found"
  */
 fn void tokenizeIdentifier(
   Tokens* tokens,
   uint* offset,
+  uint line,
   char[] src)
 {
   uint lexeme_start = *offset;
   while(isAlphaNum(lookupNextChar(*offset, src))) ++*offset;
-    
-  
 
+  String str_value = (String) src[lexeme_start..*offset];
+
+  if (try index = array::index_of(KEYWORDS_STRINGS, str_value)) {
+    TokenKind kind = KEYWORDS_KINDS[index];
+    tokens.push(line, kind);
+  } else {
+    tokens.push(line, TokenKind.IDENTIFIER);
+  } 
 }
 
 /**
@@ -137,7 +139,7 @@ fn void tokenizeIdentifier(
  * @param line "Current line"
  * @param src "Source code"
  *
- * @require isDigit(src[*offset])
+ * @require isDigit(src[*offset]) "First character of lexeme must be already found"
  */
 fn void tokenizeNumberLiteral(
   Tokens* tokens,
@@ -203,6 +205,27 @@ fn void! tokenizeStringLiteral(
   // Trim the surrounding quotes
   String value = (String) src[lexeme_start+1..*offset];
   tokens.push_value(*line, TokenKind.STRING, value);
+}
+
+/**
+ * Skips characters till comment's end, 
+ * by modifying 'offset'
+ * 
+ * @param [&inout] offset
+ * @param src
+ *
+ * @require (src[*offset] == '/' && lookupNextChar(*offset, src) == '/') "Must be invoked when comment is detected (offset is pointing to first '/')"
+ */
+fn void processComment(
+  uint* offset,
+  char[] src)
+{
+  char c;
+
+  do {
+    ++*offset;
+    c = lookupNextChar(*offset, src);
+  } while (c != '\n' && c != Ascii.EOF.value);
 }
 
 /**
