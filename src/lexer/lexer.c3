@@ -2,7 +2,7 @@
 module c3lox::lexer;
 import c3lox::logger, c3lox::err, std::io, std::ascii;
 
-enum Ascii : char (char value) {
+enum Ascii : char (char value) @private {
   EOF = 26,
 }
 
@@ -17,13 +17,11 @@ fn void! scanTokens(Tokens* tokens, char[] src)
 {
   anyfault caught_error;
 
-  uint lex_start = 0; // lexeme start
   uint offset    = 0; // current offset
   uint line      = 1; // current line
 
   while (!isEOF(offset, src.len)) {
-    lex_start = offset;
-    caught_error = @catch(scanToken(tokens, &lex_start, &offset, &line, src));
+    caught_error = @catch(scanToken(tokens, &offset, &line, src));
   }
 
   if (caught_error) return caught_error?;
@@ -31,7 +29,6 @@ fn void! scanTokens(Tokens* tokens, char[] src)
 
 /**
  * @param [out] tokens
- * @param [inout] lexem_start "Start of lexem"
  * @param [inout] offset      "Current offset"
  * @param [inout] line        "Current line"
  * @param src                 "Source code"
@@ -40,7 +37,6 @@ fn void! scanTokens(Tokens* tokens, char[] src)
  */
 fn void! scanToken(
   Tokens* tokens, 
-  uint* lexem_start, 
   uint* offset, 
   uint* line, 
   char[] src)
@@ -100,10 +96,10 @@ fn void! scanToken(
       tokenizeStringLiteral(tokens, line, offset, src)!;
 
     default:
-      if (isNumStart(c)) {
+      if (isDigit(c)) {
         tokenizeNumberLiteral(tokens, offset, *line, src);
-      } else if (isIdStart(c)) {
-        tokenizeIdentifier();
+      } else if (isAlpha(c)) {
+        tokenizeIdentifier(tokens, offset, src);
       } else {
         logger::userError(*line, "Unexpected character: ", c);
         return ProgramError.USER_ERROR?;
@@ -112,9 +108,23 @@ fn void! scanToken(
 
 }
 
-
-fn void tokenizeIdentifier()
+/**
+ * Modifies 'tokens' parameter by pushing 
+ * identifier into it. 
+ *
+ * @param [&out] tokens "Tokens to be modified"
+ * @param [&inout] offset "Offset of number start"
+ * @param src "Source code"
+ */
+fn void tokenizeIdentifier(
+  Tokens* tokens,
+  uint* offset,
+  char[] src)
 {
+  uint lexeme_start = *offset;
+  while(isAlphaNum(lookupNextChar(*offset, src))) ++*offset;
+    
+  
 
 }
 
@@ -122,12 +132,12 @@ fn void tokenizeIdentifier()
  * Modifies 'tokens' parameter by pushing 
  * value of string literal into it. 
  *
- * @param [out] tokens "Tokens to be modified"
- * @param [inout] offset "Offset of number start"
+ * @param [&out] tokens "Tokens to be modified"
+ * @param [&inout] offset "Offset of number start"
  * @param line "Current line"
  * @param src "Source code"
  *
- * @require isNumStart(src[*offset])
+ * @require isDigit(src[*offset])
  */
 fn void tokenizeNumberLiteral(
   Tokens* tokens,
@@ -159,9 +169,9 @@ fn void tokenizeNumberLiteral(
  * Modifies 'tokens' parameter by pushing 
  * value of string literal into it. 
  *
- * @param [out] tokens "Tokens to be modified"
- * @param [inout] line "Current line"
- * @param [inout] offset "Offset of double quotes character"
+ * @param [&out] tokens "Tokens to be modified"
+ * @param [&inout] line "Current line"
+ * @param [&inout] offset "Offset of double quotes character"
  * @param src "Source code"
  *
  * @require src[*offset] == '"'
@@ -196,7 +206,7 @@ fn void! tokenizeStringLiteral(
 }
 
 /**
- * @param [inout] offset "Current offset"
+ * @param [&inout] offset "Current offset"
  * @param src "Source code"
  *
  * @return "26 if it's EOF"
@@ -241,9 +251,8 @@ macro bool isEOF(
   return offset >= src_len;
 }
 
-macro bool isNumStart(char c) => ascii::is_digit_m(c);
 macro bool isDigit(char c) => ascii::is_digit_m(c);
-macro bool isIdStart(char c) => ascii::is_alpha_m(c) || c == '_';
-macro bool isIdPart(char c) => ascii::is_alpha_m(c) || c == '_' || isDigit(c);
+macro bool isAlpha(char c) => ascii::is_alpha_m(c) || c == '_';
+macro bool isAlphaNum(char c) => isAlpha(c) || isDigit(c);
 
 
