@@ -55,6 +55,9 @@ breakfast = "beignets";
 print breakfast; // "beignets".
 
 
+mul(add(2,3), add(2,4))
+2 + 3 * 2 + 4;
+
 if (condition) {
   print "yes";
 } else {

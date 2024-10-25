@@ -1,7 +1,6 @@
 
 module std::collections::list(<Type>);
 
-
 /**
  * @param val
  *

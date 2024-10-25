@@ -1,14 +1,20 @@
 {
   "langrev": "1",
-  "warnings": [ "no-unused" ],
+  "warnings": [ ],
   "dependency-search-paths": [ ],
   "dependencies": [ ],
   "version": "0.1.0",
-  "sources": [ "src/**" ],
   "output": "build",
+  "sources": [ "src/utils/**" ],
   "targets": {
     "c3lox": {
       "type": "executable",
+      "sources": [ "src/c3lox/**" ],
+    },
+
+    "ast-gen": {
+      "type": "executable",
+      "sources": [ "src/ast-gen/**" ],
     },
   },
   "cpu": "generic",

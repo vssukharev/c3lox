@@ -5,14 +5,15 @@ import std::collections::list, std::io;
 // lines.len == kinds.len == value_indices.len
 struct Tokens (Printable) 
 {
-  TokenLineList lines;
+  UszList lines;
   TokenKindList kinds;
-  TokenValueIndices value_indices;
+  UszList value_indices; // contains indices of 'values'
   TokenValues values;
 }
 
-def TokenValueIndices = List(<usz>);
-def TokenLineList = List(<uint>);
+def TokenIndex = usz;
+
+def UszList = List(<usz>);
 
 /**
  * Pushes the token information without value.
@@ -25,7 +26,7 @@ fn void Tokens.push(&self, uint line, TokenKind kind)
 {
   self.lines.push(line);
   self.kinds.push(kind);
-  io::printfn("Pushing TokenKind %s on line %s", line, kind);
+  io::eprintfn("Pushing TokenKind %s on line %s", line, kind);
   self.value_indices.push(usz.max);
 }
 
@@ -41,18 +42,16 @@ macro void Tokens.push_value(&self, uint line, TokenKind kind, val)
   usz i;
 
   $switch ($typeof(val).typeid)
-    $case TokenInteger.typeid:
-      i = self.values.integers.push_unique(val);
-    $case TokenFloat.typeid:
-      i = self.values.floats.push_unique(val);
-    $case String.typeid:
+    $case TokenNumber.typeid:
+      i = self.values.numbers.push_unique(val);
+    $case TokenString.typeid:
       i = self.values.strings.push_unique(val);
     $default:
       $error "Attempt to push value of invalid type";
   $endswitch
 
   self.lines.push(line);
-  io::printfn("Pushing TokenKind %s on line %s with value %s", line, kind, val);
+  io::eprintfn("Pushing TokenKind %s on line %s with value %s", line, kind, val);
   self.kinds.push(kind);
   self.value_indices.push(i);
 }

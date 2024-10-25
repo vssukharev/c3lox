@@ -1,6 +1,6 @@
 
 module c3lox::lexer;
-import c3lox::logger, c3lox::err, std::io, std::ascii;
+import utils::logger, utils::err, std::io, std::ascii;
 
 enum Ascii : char (char value) @private {
   EOF = 26,

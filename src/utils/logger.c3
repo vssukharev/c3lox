@@ -1,5 +1,5 @@
 
-module c3lox::logger;
+module utils::logger;
 import std::io;
 
 /**
