@@ -5,7 +5,7 @@
   "dependencies": [ ],
   "version": "0.1.0",
   "output": "build",
-  "sources": [ "src/utils/**" ],
+  "sources": [ "src/utils/**", "src/tests/**" ],
   "targets": {
     "c3lox": {
       "type": "executable",
