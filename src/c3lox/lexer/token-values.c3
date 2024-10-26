@@ -8,6 +8,13 @@ struct TokenValues
   TokenNumberList numbers;
 }
 
+struct TokenValueKey {
+  typeid type;
+  usz index;
+}
+
+def TokenValueKeyList = List(<TokenValueKey>);
+
 def TokenNumber = double;
 def TokenString = String;
 

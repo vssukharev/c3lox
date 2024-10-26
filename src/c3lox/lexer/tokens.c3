@@ -2,18 +2,29 @@
 module c3lox::lexer;
 import std::collections::list, std::io;
 
+def UszList = List(<usz>) @private;
+def UintList = List(<uint>) @private;
+
 // lines.len == kinds.len == value_indices.len
 struct Tokens (Printable) 
 {
-  UszList lines;
+  UintList lines;
   TokenKindList kinds;
+  TokenValueKeyList keys;
   UszList value_indices; // contains indices of 'values'
   TokenValues values;
 }
 
 def TokenIndex = usz;
 
-def UszList = List(<usz>);
+/** 
+ *
+ */
+fn TokenKind Tokens.get_kind(&self, TokenIndex i)
+{
+  return self.kinds[i];
+}
+
 
 /**
  * Pushes the token information without value.
@@ -22,12 +33,14 @@ def UszList = List(<usz>);
  * @param line
  * @param kind
  */
-fn void Tokens.push(&self, uint line, TokenKind kind)
+fn TokenIndex Tokens.push(&self, uint line, TokenKind kind)
 {
   self.lines.push(line);
   self.kinds.push(kind);
-  io::eprintfn("Pushing TokenKind %s on line %s", line, kind);
+  io::eprintfn("Pushing TokenKind %s on line %s", kind, line);
   self.value_indices.push(usz.max);
+
+  return self.lines.len()-1;
 }
 
 /**
@@ -37,7 +50,7 @@ fn void Tokens.push(&self, uint line, TokenKind kind)
  * @param line
  * @param kind
  */
-macro void Tokens.push_value(&self, uint line, TokenKind kind, val)
+macro TokenIndex Tokens.push_value(&self, uint line, TokenKind kind, val)
 {
   usz i;
 
@@ -51,9 +64,11 @@ macro void Tokens.push_value(&self, uint line, TokenKind kind, val)
   $endswitch
 
   self.lines.push(line);
-  io::eprintfn("Pushing TokenKind %s on line %s with value %s", line, kind, val);
+  io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
   self.kinds.push(kind);
   self.value_indices.push(i);
+  
+  return i;
 }
 
 /**

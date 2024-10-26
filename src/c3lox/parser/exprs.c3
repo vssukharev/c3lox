@@ -1,6 +1,6 @@
 
 module c3lox::parser;
-import std::collections::list, c3lox::lexer;
+import std::collections::list, c3lox::lexer, std::io;
 
 struct Exprs {
   ExprNodeList nodes;
@@ -25,31 +25,33 @@ fn void Exprs.new_init(&self, usz capacity = 16)
   self.values.new_init(capacity);
 }
 
-
 /**
  *
  */
-macro void Exprs.push(&self, val)
+macro ExprIndex Exprs.push(&self, val)
 {
   usz i = 0;
 
   $switch ($typeof(val).typeid)
     $case BinaryExpr.typeid:
       self.values.binary.push(val);  
-      i = self.values.binary.len() - 1;
+      i = self.values.binary.len()-1;
     $case GroupingExpr.typeid:
       self.values.grouping.push(val);  
-      i = self.values.grouping.len() - 1;
+      i = self.values.grouping.len()-1;
     $case UnaryExpr.typeid:
       self.values.unary.push(val);  
-      i = self.values.unary.len() - 1;
+      i = self.values.unary.len()-1;
     $case LiteralExpr.typeid:
       self.values.literal.push(val);  
-      i = self.values.literal.len() - 1;
+      i = self.values.literal.len()-1;
     $default:
       $error "Attempt to push value of invalid type in Exprs";
   $endswitch
 
   self.nodes.push({ $typeof(val).typeid, i });
+  io::eprintfn("Pushing %s", $typeof(val).nameof);
+
+  return self.nodes.len()-1;
 }
 

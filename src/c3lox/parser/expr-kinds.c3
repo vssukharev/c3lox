@@ -1,6 +1,6 @@
 
 module c3lox::parser;
-import std::collections::list, c3lox::lexer;
+import std::collections::list, c3lox::lexer, std::io;
 
 struct ExprValues {
   BinaryExprList binary;
