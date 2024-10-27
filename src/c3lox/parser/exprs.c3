@@ -8,7 +8,7 @@ struct Exprs {
 }
 
 // Index to access a particular expression
-def ExprIndex = usz;
+def ExprKey = usz;
 
 def ExprNodeList = List(<ExprNode>);
 struct ExprNode {
@@ -28,7 +28,7 @@ fn void Exprs.new_init(&self, usz capacity = 16)
 /**
  *
  */
-macro ExprIndex Exprs.push(&self, val)
+macro ExprKey Exprs.push(&self, val)
 {
   usz i = 0;
 

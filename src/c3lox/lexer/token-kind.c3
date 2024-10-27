@@ -2,7 +2,7 @@
 module c3lox::lexer;
 import std::collections::list;
 
-enum TokenKind : char {
+enum TokenKind : int {
   // Single-character tokens.
   LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
   COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,

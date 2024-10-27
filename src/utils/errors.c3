@@ -11,4 +11,7 @@ fault ProgramError {
   USER_ERROR
 }
 
+fault LexerError {
+  NO_VAL_UNDER_INDEX
+}
 

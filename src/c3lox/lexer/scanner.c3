@@ -1,10 +1,6 @@
 
 module c3lox::lexer;
-import utils::logger, utils::err, std::io, std::ascii;
-
-enum Ascii : char (char value) @private {
-  EOF = 26,
-}
+import utils, std::io, std::ascii;
 
 /**
  * Scans for tokens
@@ -60,7 +56,7 @@ fn void! scanToken(
     case '!': tokens.push(*line, matchNextChar('=', offset, src)
               ? TokenKind.BANG_EQUAL : TokenKind.BANG);
 
-case '=': tokens.push(*line, matchNextChar('=', offset, src) 
+    case '=': tokens.push(*line, matchNextChar('=', offset, src) 
               ? TokenKind.EQUAL_EQUAL : TokenKind.EQUAL);
 
     case '<': tokens.push(*line, matchNextChar('=', offset, src) 

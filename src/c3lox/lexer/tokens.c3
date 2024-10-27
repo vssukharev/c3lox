@@ -1,30 +1,46 @@
 
 module c3lox::lexer;
-import std::collections::list, std::io;
-
-def UszList = List(<usz>) @private;
-def UintList = List(<uint>) @private;
+import std::io, utils::err, utils::alias;
 
 // lines.len == kinds.len == value_indices.len
-struct Tokens (Printable) 
+def TokenKey = usz;
+struct Tokens
 {
-  UintList lines;
+  UlongList lines;
   TokenKindList kinds;
-  TokenValueKeyList keys;
-  UszList value_indices; // contains indices of 'values'
+  UszList value_indices;
   TokenValues values;
 }
 
-def TokenIndex = usz;
+// Basic getters for conveniance
+macro ulong Tokens.get_line(&self, TokenKey i) => self.lines[i];
+macro TokenKind Tokens.get_kind(&self, TokenKey i) => self.kinds[i];
+macro TokenString Tokens.get_string_value(&self, usz i) => self.values.strings[i];
+macro TokenNumber Tokens.get_number_value(&self, usz i) => self.values.numbers[i];
+macro TokenKey Tokens.len(&self) => self.lines.len();
 
-/** 
+/**
+ * Returns value under specified TokenKey
  *
+ * @param i "Index"
+ *
+ * @return! LexerError.NO_VAL_UNDER_INDEX
  */
-fn TokenKind Tokens.get_kind(&self, TokenIndex i)
+fn TokenValueKey! Tokens.get_value_key(&self, TokenKey i)
 {
-  return self.kinds[i];
-}
+  TokenKind kind = self.kinds[i];
+  TokenValueKey res = { 0, kind }; 
 
+  switch (kind) {
+    case TokenKind.STRING:
+    case TokenKind.NUMBER:
+      res.index = self.value_indices[i];
+    default:
+      return LexerError.NO_VAL_UNDER_INDEX?;
+  }
+
+  return res;
+}
 
 /**
  * Pushes the token information without value.
@@ -33,11 +49,11 @@ fn TokenKind Tokens.get_kind(&self, TokenIndex i)
  * @param line
  * @param kind
  */
-fn TokenIndex Tokens.push(&self, uint line, TokenKind kind)
+fn TokenKey Tokens.push(&self, uint line, TokenKind kind)
 {
   self.lines.push(line);
   self.kinds.push(kind);
-  io::eprintfn("Pushing TokenKind %s on line %s", kind, line);
+  // io::eprintfn("Pushing TokenKind %s on line %s", kind, line);
   self.value_indices.push(usz.max);
 
   return self.lines.len()-1;
@@ -50,7 +66,7 @@ fn TokenIndex Tokens.push(&self, uint line, TokenKind kind)
  * @param line
  * @param kind
  */
-macro TokenIndex Tokens.push_value(&self, uint line, TokenKind kind, val)
+macro TokenKey Tokens.push_value(&self, uint line, TokenKind kind, val)
 {
   usz i;
 
@@ -64,7 +80,7 @@ macro TokenIndex Tokens.push_value(&self, uint line, TokenKind kind, val)
   $endswitch
 
   self.lines.push(line);
-  io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
+  // io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
   self.kinds.push(kind);
   self.value_indices.push(i);
   
@@ -95,11 +111,6 @@ fn void Tokens.free(&self)
   self.kinds.free();
   self.lines.free();
   self.values.free();
-}
-
-fn usz! Tokens.to_format(&self, Formatter* formatter) @dynamic
-{
-  return formatter.printf("%s, %s", self.lines, self.kinds)!;
 }
 
 

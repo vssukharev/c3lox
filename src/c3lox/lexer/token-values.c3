@@ -2,24 +2,17 @@
 module c3lox::lexer;
 import std::collections::list;
 
-struct TokenValues
-{
-  TokenStringList strings;
-  TokenNumberList numbers;
-}
-
-struct TokenValueKey {
-  typeid type;
-  usz index;
-}
-
-def TokenValueKeyList = List(<TokenValueKey>);
-
 def TokenNumber = double;
 def TokenString = String;
 
 def TokenStringList = List(<TokenString>);
 def TokenNumberList = List(<TokenNumber>);
+
+struct TokenValues
+{
+  TokenStringList strings;
+  TokenNumberList numbers;
+}
 
 /**
  * Allocates TokenValues on the heap
