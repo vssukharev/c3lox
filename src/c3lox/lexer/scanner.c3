@@ -123,10 +123,10 @@ fn void tokenizeIdentifier(
   }
 
   if (index != usz.max) {
-    TokenKind kind = KEYWORDS_KINDS[index];
+    TokenKind kind = KEYWORDS[index];
     tokens.push(line, kind);
   } else {
-    tokens.push(line, TokenKind.IDENTIFIER);
+    tokens.push_value(line, TokenKind.IDENTIFIER, str_value);
   } 
 }
 

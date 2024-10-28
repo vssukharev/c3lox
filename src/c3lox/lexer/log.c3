@@ -4,7 +4,7 @@ import std::io;
 
 fn void Tokens.print(&self)
 {
-  const String TOKENS_HEADER_START = "----- Tokens ";
+  const String HEADER_START = "----- Tokens ";
   const String KEY_HEADER = "key";
   const String LINE_HEADER = "line";
   const String KIND_HEADER = "kind";
@@ -12,14 +12,14 @@ fn void Tokens.print(&self)
 
   const int MAX_CHARS_KEY = 5;
   const int MAX_CHARS_LINE = 5; // >= LINE_HEADER.len
-  const int MAX_CHARS_KIND = 10; // >= KIND_HEADER.len
+  const int MAX_CHARS_KIND = 12; // >= KIND_HEADER.len
   const int MAX_CHARS_VALUE = 10; // >= VALUE_HEADER.len
 
   const int ROW_LEN = MAX_CHARS_KEY + MAX_CHARS_LINE + MAX_CHARS_KIND + MAX_CHARS_VALUE;
 
   // 1st line
-  io::print(TOKENS_HEADER_START);
-  for (int i = 0; i < ROW_LEN - TOKENS_HEADER_START.len; ++i) {
+  io::print(HEADER_START);
+  for (int i = 0; i < ROW_LEN - HEADER_START.len; ++i) {
     io::putchar('-');
   }
   io::printn();
@@ -95,15 +95,18 @@ fn void Tokens.print(&self)
       } while (j < MAX_CHARS_KIND - str_len);
     }
 
+    // TODO: make it simpler
     // print value
     if (try value_key) {
       switch (value_key.kind) {
-        case TokenKind.STRING:
+        case TokenKind.STRING: case TokenKind.IDENTIFIER:
           io::printf("%s", self.values.strings[value_key.index]);
         case TokenKind.NUMBER:
           io::printf("%s", self.values.numbers[value_key.index]);
         default: break;
       }
+    } else {
+      io::printf("%s", kind.str);
     }
 
     io::printn();

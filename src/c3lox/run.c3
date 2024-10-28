@@ -15,9 +15,7 @@ fn void! interpreter(char[] src)
 
   lexer::scanTokens(&tokens, src)!;
 
-  // foreach (&token : tokens) {
-  //   io::printfn("%s", *token);
-  // }
+  tokens.print();
 }
 
 /**

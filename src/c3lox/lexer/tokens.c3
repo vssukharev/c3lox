@@ -34,6 +34,7 @@ fn TokenValueKey! Tokens.get_value_key(&self, TokenKey i)
   switch (kind) {
     case TokenKind.STRING:
     case TokenKind.NUMBER:
+    case TokenKind.IDENTIFIER:
       res.index = self.value_indices[i];
     default:
       return LexerError.NO_VAL_UNDER_INDEX?;
@@ -80,7 +81,7 @@ macro TokenKey Tokens.push_value(&self, uint line, TokenKind kind, val)
   $endswitch
 
   self.lines.push(line);
-  // io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
+  io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
   self.kinds.push(kind);
   self.value_indices.push(i);
   

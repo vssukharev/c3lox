@@ -20,3 +20,21 @@ macro usz List.push_unique(&self, Type val)
   }
 }
 
+module std::core::array;
+
+/**
+ * Calculates sum of all elements in array
+ */
+macro sum(array)
+{
+  $InnerT = $typeof(array[0]);
+
+  $InnerT res;
+
+  foreach ($InnerT* &elem : array) {
+    res += *elem;
+  }
+
+  return res;
+}
+
