@@ -5,15 +5,17 @@ import std::io;
 fn void Tokens.print(&self)
 {
   const String TOKENS_HEADER_START = "----- Tokens ";
+  const String KEY_HEADER = "key";
   const String LINE_HEADER = "line";
   const String KIND_HEADER = "kind";
   const String VALUE_HEADER = "value";
 
-  const int MAX_CHARS_LINE = 7; // >= LINE_HEADER.len
+  const int MAX_CHARS_KEY = 5;
+  const int MAX_CHARS_LINE = 5; // >= LINE_HEADER.len
   const int MAX_CHARS_KIND = 10; // >= KIND_HEADER.len
   const int MAX_CHARS_VALUE = 10; // >= VALUE_HEADER.len
 
-  const int ROW_LEN = MAX_CHARS_LINE + MAX_CHARS_KIND + MAX_CHARS_VALUE;
+  const int ROW_LEN = MAX_CHARS_KEY + MAX_CHARS_LINE + MAX_CHARS_KIND + MAX_CHARS_VALUE;
 
   // 1st line
   io::print(TOKENS_HEADER_START);
@@ -23,6 +25,11 @@ fn void Tokens.print(&self)
   io::printn();
 
   // 2nd line
+  io::print(KEY_HEADER);  
+  for (int i = 0; i < MAX_CHARS_KEY - KEY_HEADER.len; ++i) {
+    io::putchar(' ');
+  }
+
   io::print(LINE_HEADER);  
   for (int i = 0; i < MAX_CHARS_LINE - LINE_HEADER.len; ++i) {
     io::putchar(' ');
@@ -45,33 +52,47 @@ fn void Tokens.print(&self)
     TokenKind kind = self.get_kind(i);
     TokenValueKey! value_key = self.get_value_key(i);
     
-    // print line
+    // print key
     {
-      usz line_str_len = 0;
-      if (try print_res = io::printf("%s", line)) {
-        line_str_len = print_res;
+      usz str_len = 0;
+      if (try print_res = io::printf("%s", i)) {
+        str_len = print_res;
       }
 
       int j = 0;
       do {
         io::putchar(' ');
         ++j;
-      } while (j < MAX_CHARS_LINE - line_str_len);
+      } while (j < MAX_CHARS_KEY - str_len);
+    }
+
+    // print line
+    {
+      usz str_len = 0;
+      if (try print_res = io::printf("%s", line)) {
+        str_len = print_res;
+      }
+
+      int j = 0;
+      do {
+        io::putchar(' ');
+        ++j;
+      } while (j < MAX_CHARS_LINE - str_len);
     }
 
 
     // print kind
     {
-      usz kind_str_len = 0;
+      usz str_len = 0;
       if (try print_res = io::printf("%s", kind)) {
-        kind_str_len = print_res;
+        str_len = print_res;
       }
 
       int j = 0;
       do {
         io::putchar(' ');
         ++j;
-      } while (j < MAX_CHARS_KIND - kind_str_len);
+      } while (j < MAX_CHARS_KIND - str_len);
     }
 
     // print value

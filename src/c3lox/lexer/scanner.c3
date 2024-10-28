@@ -117,7 +117,12 @@ fn void tokenizeIdentifier(
 
   String str_value = (String) src[lexeme_start..*offset];
 
-  if (try index = array::index_of(KEYWORDS_STRINGS, str_value)) {
+  usz index = usz.max;
+  foreach (usz i, TokenKind elem : KEYWORDS) {
+    if (elem.str == str_value) index = i; break;
+  }
+
+  if (index != usz.max) {
     TokenKind kind = KEYWORDS_KINDS[index];
     tokens.push(line, kind);
   } else {
