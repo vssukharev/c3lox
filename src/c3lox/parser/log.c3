@@ -1,20 +1,39 @@
 
 module c3lox::parser;
-import std::io;
+import std::io, c3lox::lexer, c3lox::err;
 
-fn void Exprs.print(&self)
+// TODO: get rid of recursion
+fn void printExpression(Exprs* exprs, Tokens* tokens, ExprKey key)
 {
-  const String HEADER_START = "----- Expressions ";
-  const String KEY_HEADER = "key";
-  const String LINE_HEADER = "line";
-  const String KIND_HEADER = "kind";
-  const String VALUE_HEADER = "value";
+  ExprNode node = exprs.nodes[key];
 
-  const int MAX_CHARS_KEY = 5;
-  const int MAX_CHARS_LINE = 5; // >= LINE_HEADER.len
-  const int MAX_CHARS_KIND = 12; // >= KIND_HEADER.len
-  const int MAX_CHARS_VALUE = 10; // >= VALUE_HEADER.len
+  io::print("( ");
+  switch (node.type) 
+  {
+    case BinaryExpr: 
+      BinaryExpr expr = (*exprs.values.@field(BinaryExpr))[node.index];
+      io::printf("%s", tokens.kinds[expr.operator_token].str);
+      io::putchar(' ');
+      printExpression(exprs, tokens, expr.left_expr);
+      io::putchar(' ');
+      printExpression(exprs, tokens, expr.right_expr);
+    
+    case LiteralExpr:
+      LiteralExpr expr = (*exprs.values.@field(LiteralExpr))[node.index];
+      TokenValueKey val_key = tokens.get_value_key(expr.literal_token)!!; // panic here as it mustn't happen
+      lexer::printTokenValue(&tokens.values, val_key);
+ 
+    case GroupingExpr:
+      GroupingExpr expr = (*exprs.values.@field(GroupingExpr))[node.index];
+      printExpression(exprs, tokens, expr.inner_expr);
 
-  const int ROW_LEN = MAX_CHARS_KEY + MAX_CHARS_LINE + MAX_CHARS_KIND + MAX_CHARS_VALUE;
+    case UnaryExpr:
+      GroupingExpr expr = (*exprs.values.@field(GroupingExpr))[node.index];
+      printExpression(exprs, tokens, expr.inner_expr);
+
+    default:
+      io::print("<UNKNOWN_EXPR>");
+  }
+  io::print(" )");
 }
 

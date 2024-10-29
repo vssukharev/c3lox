@@ -1,6 +1,6 @@
 
 module c3lox::lexer;
-import utils, std::io, std::ascii;
+import utils, c3lox::err, std::io, std::ascii;
 
 /**
  * Scans for tokens

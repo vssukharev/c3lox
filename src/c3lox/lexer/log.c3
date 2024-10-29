@@ -48,8 +48,8 @@ fn void Tokens.print(&self)
 
   // nth line
   for (TokenKey i = 0; i != self.len(); ++i) {
-    ulong line = self.get_line(i);
-    TokenKind kind = self.get_kind(i);
+    ulong line = self.lines[i];
+    TokenKind kind = self.kinds[i];
     TokenValueKey! value_key = self.get_value_key(i);
     
     // print key
@@ -98,13 +98,7 @@ fn void Tokens.print(&self)
     // TODO: make it simpler
     // print value
     if (try value_key) {
-      switch (value_key.kind) {
-        case TokenKind.STRING: case TokenKind.IDENTIFIER:
-          io::printf("%s", self.values.strings[value_key.index]);
-        case TokenKind.NUMBER:
-          io::printf("%s", self.values.numbers[value_key.index]);
-        default: break;
-      }
+      printTokenValue(&self.values, value_key);
     } else {
       io::printf("%s", kind.str);
     }
@@ -116,6 +110,17 @@ fn void Tokens.print(&self)
     io::putchar('-');
   }
   io::printn();
+}
+
+// TODO: do it more safe
+fn void printTokenValue(TokenValues* token_vals, TokenValueKey val_key) {
+  switch (val_key.kind) {
+    case STRING: case IDENTIFIER:
+      io::printf("%s", token_vals.strings[val_key.index]);
+    case NUMBER:
+      io::printf("%.3f", token_vals.numbers[val_key.index]);
+    default: break;
+  }
 }
 
 

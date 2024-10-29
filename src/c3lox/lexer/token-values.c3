@@ -14,6 +14,12 @@ struct TokenValues
   TokenNumberList numbers;
 }
 
+struct TokenValueKey
+{
+  usz index;
+  TokenKind kind;
+}
+
 /**
  * Allocates TokenValues on the heap
  *

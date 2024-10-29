@@ -1,6 +1,6 @@
 
 module c3lox::run;
-import std::io, utils::err, c3lox::lexer;
+import std::io, c3lox::err, c3lox::lexer;
 
 /**
  * @param [in] src

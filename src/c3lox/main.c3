@@ -1,6 +1,6 @@
 
 module c3lox;
-import std::io, utils::err;
+import std::io, c3lox::err;
 
 /**
  * Entry point

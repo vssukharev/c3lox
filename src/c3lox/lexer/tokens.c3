@@ -1,6 +1,6 @@
 
 module c3lox::lexer;
-import std::io, utils::err, utils::alias;
+import std::io, c3lox::err, utils::alias;
 
 // lines.len == kinds.len == value_indices.len
 def TokenKey = usz;
@@ -12,11 +12,6 @@ struct Tokens
   TokenValues values;
 }
 
-// Basic getters for conveniance
-macro ulong Tokens.get_line(&self, TokenKey i) => self.lines[i];
-macro TokenKind Tokens.get_kind(&self, TokenKey i) => self.kinds[i];
-macro TokenString Tokens.get_string_value(&self, usz i) => self.values.strings[i];
-macro TokenNumber Tokens.get_number_value(&self, usz i) => self.values.numbers[i];
 macro TokenKey Tokens.len(&self) => self.lines.len();
 
 /**
@@ -29,13 +24,13 @@ macro TokenKey Tokens.len(&self) => self.lines.len();
 fn TokenValueKey! Tokens.get_value_key(&self, TokenKey i)
 {
   TokenKind kind = self.kinds[i];
-  TokenValueKey res = { 0, kind }; 
+  TokenValueKey res; 
 
   switch (kind) {
     case TokenKind.STRING:
     case TokenKind.NUMBER:
     case TokenKind.IDENTIFIER:
-      res.index = self.value_indices[i];
+      res = { self.value_indices[i], kind };
     default:
       return LexerError.NO_VAL_UNDER_INDEX?;
   }
@@ -57,7 +52,7 @@ fn TokenKey Tokens.push(&self, uint line, TokenKind kind)
   // io::eprintfn("Pushing TokenKind %s on line %s", kind, line);
   self.value_indices.push(usz.max);
 
-  return self.lines.len()-1;
+  return self.value_indices.len()-1;
 }
 
 /**
@@ -71,21 +66,21 @@ macro TokenKey Tokens.push_value(&self, uint line, TokenKind kind, val)
 {
   usz i;
 
-  $switch ($typeof(val).typeid)
-    $case TokenNumber.typeid:
+  $switch ($typeof(val))
+    $case TokenNumber:
       i = self.values.numbers.push_unique(val);
-    $case TokenString.typeid:
+    $case TokenString:
       i = self.values.strings.push_unique(val);
     $default:
       $error "Attempt to push value of invalid type";
   $endswitch
 
   self.lines.push(line);
-  io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
+  // io::eprintfn("Pushing TokenKind %s on line %s with value %s", kind, line, val);
   self.kinds.push(kind);
   self.value_indices.push(i);
   
-  return i;
+  return self.value_indices.len()-1;
 }
 
 /**

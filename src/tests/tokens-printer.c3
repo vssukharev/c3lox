@@ -8,7 +8,8 @@ fn void tokenPrinter() @test
 
   Tokens tokens;
   tokens.new_init();
-  
+  defer tokens.free();
+
   tokens.push_value(1, TokenKind.NUMBER, (TokenNumber) 2);
   tokens.push(1, TokenKind.PLUS);
   tokens.push_value(1, TokenKind.NUMBER, (TokenNumber) 4);
