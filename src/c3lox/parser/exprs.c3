@@ -45,7 +45,7 @@ macro ExprKey Exprs.push(&self, val)
   field.push(val);
 
   self.nodes.push({$Type.typeid, field.len()-1});
-  // io::eprintfn("Pushing %s", $Type.nameof);
+  // io::eprintfn("Pushing %s with value %s", $Type.nameof, val);
 
   return self.nodes.len()-1;
 }

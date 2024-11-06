@@ -2,6 +2,8 @@
 module c3lox::lexer;
 import std::collections::list;
 
+const TokenKind[] KEYWORDS = @genKeywords();
+
 def TokenKindList = List(<TokenKind>);
 enum TokenKind : int (String str) {
   // Single-character tokens.
@@ -52,8 +54,6 @@ enum TokenKind : int (String str) {
 
   EOF = "<EOF>"
 }
-
-const TokenKind[] KEYWORDS = @genKeywords();
 
 /**
  * Generates array of TokenKind, containing all keywords.

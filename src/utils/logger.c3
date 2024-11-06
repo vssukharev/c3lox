@@ -7,11 +7,11 @@ import std::io;
  */
 macro void userError(uint line, ...)
 {
-  io::printf("Error occured on line %s: ", line);
+  io::eprintf("Error occured on line %s: ", line);
   $for (var $i = 0; $i < $vacount; ++$i)
     printArg($vaarg[$i]);
   $endfor
-  io::printn();
+  io::eprint("\n");
 }
 
 /**
@@ -22,9 +22,9 @@ macro void printArg(arg) @private
   $switch ($typeof(arg).typeid) 
     $case ichar.typeid:
     $case char.typeid:
-      io::printf("%c", arg);
+      io::eprintf("%c", arg);
     $default:
-      io::printf("%s", arg);
+      io::eprintf("%s", arg);
   $endswitch
 }
 

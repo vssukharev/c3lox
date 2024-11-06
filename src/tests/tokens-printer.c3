@@ -4,7 +4,7 @@ import c3lox::lexer, std::io;
 
 fn void tokenPrinter() @test 
 {
-  io::printn();
+  io::eprint("\n");
 
   Tokens tokens;
   tokens.new_init();

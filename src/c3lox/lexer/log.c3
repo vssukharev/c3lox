@@ -18,33 +18,33 @@ fn void Tokens.print(&self)
   const int ROW_LEN = MAX_CHARS_KEY + MAX_CHARS_LINE + MAX_CHARS_KIND + MAX_CHARS_VALUE;
 
   // 1st line
-  io::print(HEADER_START);
+  io::eprint(HEADER_START);
   for (int i = 0; i < ROW_LEN - HEADER_START.len; ++i) {
-    io::putchar('-');
+    io::eprint("-");
   }
-  io::printn();
+  io::eprint("\n");
 
   // 2nd line
-  io::print(KEY_HEADER);  
+  io::eprint(KEY_HEADER);  
   for (int i = 0; i < MAX_CHARS_KEY - KEY_HEADER.len; ++i) {
-    io::putchar(' ');
+    io::eprint(" ");
   }
 
-  io::print(LINE_HEADER);  
+  io::eprint(LINE_HEADER);  
   for (int i = 0; i < MAX_CHARS_LINE - LINE_HEADER.len; ++i) {
-    io::putchar(' ');
+    io::eprint(" ");
   }
 
-  io::print(KIND_HEADER);  
+  io::eprint(KIND_HEADER);  
   for (int i = 0; i < MAX_CHARS_KIND - KIND_HEADER.len; ++i) {
-    io::putchar(' ');
+    io::eprint(" ");
   }
 
-  io::print(VALUE_HEADER);
+  io::eprint(VALUE_HEADER);
   for (int i = 0; i < MAX_CHARS_VALUE - VALUE_HEADER.len; ++i) {
-    io::putchar(' ');
+    io::eprint(" ");
   }
-  io::printn();
+  io::eprint("\n");
 
   // nth line
   for (TokenKey i = 0; i != self.len(); ++i) {
@@ -55,13 +55,13 @@ fn void Tokens.print(&self)
     // print key
     {
       usz str_len = 0;
-      if (try print_res = io::printf("%s", i)) {
+      if (try print_res = io::eprintf("%s", i)) {
         str_len = print_res;
       }
 
       int j = 0;
       do {
-        io::putchar(' ');
+        io::eprint(" ");
         ++j;
       } while (j < MAX_CHARS_KEY - str_len);
     }
@@ -69,13 +69,13 @@ fn void Tokens.print(&self)
     // print line
     {
       usz str_len = 0;
-      if (try print_res = io::printf("%s", line)) {
+      if (try print_res = io::eprintf("%s", line)) {
         str_len = print_res;
       }
 
       int j = 0;
       do {
-        io::putchar(' ');
+        io::eprint(" ");
         ++j;
       } while (j < MAX_CHARS_LINE - str_len);
     }
@@ -84,13 +84,13 @@ fn void Tokens.print(&self)
     // print kind
     {
       usz str_len = 0;
-      if (try print_res = io::printf("%s", kind)) {
+      if (try print_res = io::eprintf("%s", kind)) {
         str_len = print_res;
       }
 
       int j = 0;
       do {
-        io::putchar(' ');
+        io::eprint(" ");
         ++j;
       } while (j < MAX_CHARS_KIND - str_len);
     }
@@ -100,25 +100,25 @@ fn void Tokens.print(&self)
     if (try value_key) {
       printTokenValue(&self.values, value_key);
     } else {
-      io::printf("%s", kind.str);
+      io::eprintf("%s", kind.str);
     }
 
-    io::printn();
+    io::eprint("\n");
   }
 
   for (int i = 0; i != ROW_LEN; ++i) {
-    io::putchar('-');
+    io::eprint("-");
   }
-  io::printn();
+  io::eprint("\n");
 }
 
 // TODO: do it more safe
 fn void printTokenValue(TokenValues* token_vals, TokenValueKey val_key) {
   switch (val_key.kind) {
     case STRING: case IDENTIFIER:
-      io::printf("%s", token_vals.strings[val_key.index]);
+      io::eprintf("%s", token_vals.strings[val_key.index]);
     case NUMBER:
-      io::printf("%.3f", token_vals.numbers[val_key.index]);
+      io::eprintf("%.3f", token_vals.numbers[val_key.index]);
     default: break;
   }
 }
