@@ -11,11 +11,10 @@ import utils, c3lox::err, std::io, std::ascii;
  */
 fn void! scanTokens(Tokens* tokens, char[] src)
 {
-  anyfault caught_error;
-
   uint offset    = 0; // current offset
   uint line      = 1; // current line
 
+  anyfault caught_error;
   while (!isEOF(offset, src.len)) {
     caught_error = @catch(scanToken(tokens, &offset, &line, src));
   }

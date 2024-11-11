@@ -7,7 +7,7 @@ struct BinaryExpr
 {
   ExprKey left_expr;
   ExprKey right_expr;
-  TokenKey operator_token;
+  TokenKind operator;
 }
 
 def GroupingExprList = List(<GroupingExpr>);
@@ -19,8 +19,8 @@ struct GroupingExpr
 def UnaryExprList = List(<UnaryExpr>);
 struct UnaryExpr 
 {
-  TokenKey operator_token;
   ExprKey right_expr;
+  TokenKind operator;
 }
 
 def LiteralExprList = List(<LiteralExpr>);

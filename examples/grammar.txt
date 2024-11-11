@@ -1,15 +1,17 @@
 
-expression  -> literal
-             | unary
-             | binary
-             | grouping ;
+expression -> equality ;
 
-literal     -> NUMBER | STRING | "true" | "false" | "nil" ;
-grouping    -> "(" expression ")" ;
-unary       -> unary_operator expression ;
-binary      -> expression binary_operator expression ;
+equality -> comparison ( ( "!=" | "==" ) comparison )* ;
 
-unary_operator -> "-" | "!" ;
-binary_operator -> "==" | "!=" | "<" | "<=" | ">" | ">=" |
-                   "+" | "-" | "*" | "/" ;
+comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+
+term -> factor ( ( "-" | "+" ) factor )* ;
+
+factor -> unary ( ( "/" | "*" ) unary )* ;
+
+unary -> ( "!" | "-" ) unary
+       | primary ;
+
+primary -> NUMBER | STRING | "true" | "false" | "nil"
+         | "(" expression ")" ;
 

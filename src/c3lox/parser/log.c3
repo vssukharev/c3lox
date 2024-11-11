@@ -13,7 +13,7 @@ fn void printExpression(Exprs* exprs, Tokens* tokens, ExprKey key)
   {
     case BinaryExpr: 
       BinaryExpr expr = (*exprs.values.@field(BinaryExpr))[node.index];
-      io::eprintf("%s", tokens.kinds[expr.operator_token].str);
+      io::eprintf("%s", expr.operator.str);
       io::eprint(" ");
       printExpression(exprs, tokens, expr.left_expr);
       io::eprint(" ");
@@ -30,7 +30,7 @@ fn void printExpression(Exprs* exprs, Tokens* tokens, ExprKey key)
 
     case UnaryExpr:
       UnaryExpr expr = (*exprs.values.@field(UnaryExpr))[node.index];
-      io::eprintf("%s", tokens.kinds[expr.operator_token].str);
+      io::eprintf("%s", expr.operator.str);
       io::eprint(" ");
       printExpression(exprs, tokens, expr.right_expr);
 
@@ -54,7 +54,7 @@ fn void printExpressionRPN(Exprs* exprs, Tokens* tokens, ExprKey key)
       io::eprint(" ");
       printExpressionRPN(exprs, tokens, expr.right_expr);
       io::eprint(" ");
-      io::eprintf("%s", tokens.kinds[expr.operator_token].str);
+      io::eprintf("%s", expr.operator.str);
     
     case LiteralExpr:
       LiteralExpr expr = (*exprs.values.@field(LiteralExpr))[node.index];
@@ -69,7 +69,7 @@ fn void printExpressionRPN(Exprs* exprs, Tokens* tokens, ExprKey key)
       UnaryExpr expr = (*exprs.values.@field(UnaryExpr))[node.index];
       printExpressionRPN(exprs, tokens, expr.right_expr);
       io::eprint(" ");
-      io::eprintf("%s", tokens.kinds[expr.operator_token].str);
+      io::eprintf("%s", expr.operator.str);
 
     default:
       io::eprint("<UNKNOWN_EXPR>");
